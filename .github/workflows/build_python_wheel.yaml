@@ -1,0 +1,66 @@
+# Reusable workflow for the repositories of the Arcalot organization.
+# This workflow builds a Python "wheel" for distributing the package.
+# It requires the PYPI_TOKEN secret.
+# (It is only run when invoked by another workflow.)
+on:
+  workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: true
+env:
+  python_version: ${{ vars.ARCALOT_PYTHON_VERSION }}
+jobs:
+  build_python_wheel:
+    name: build python wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: version format check
+        if: startsWith(github.event.ref, 'refs/tags/')
+        shell: bash
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          if [[ ${VERSION//[[:blank:]]/} =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+([-+][[:alnum:]]+)?$ ]]
+          then echo "[INF] version format accepted"
+          else echo "[ERR] wrong version format: $VERSION" ; exit 1
+          fi
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: python/artifacts
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.python_version }}
+          architecture: 'x64'
+      - name: Grab the License file
+        run: |
+          cp LICENSE python/
+      - name: Fetch python dependencies
+        working-directory: python
+        shell: bash
+        run: |
+          make setup
+      - name: Bump version
+        if: startsWith(github.event.ref, 'refs/tags/')
+        working-directory: python
+        env:
+          VERSION: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          sed -ri "s/^(.+version=')(.+)('.*)$/\1${VERSION/v/}\3/" setup.py
+      - name: Build python wheel
+        working-directory: python
+        run: |
+          make all
+      - name: Push to pypi
+        if: startsWith(github.event.ref, 'refs/tags/')
+        working-directory: python
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload dist/*

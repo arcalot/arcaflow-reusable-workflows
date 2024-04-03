@@ -1,0 +1,45 @@
+# Reusable workflow for the repositories of the Arcalot organization.
+# This workflow builds a Go release.
+#
+# It builds either a "release" or a "snapshot" (depending on the value of the
+# `for_release` input, which should be set to true or false, respectively) and
+# uploads the resulting binary artifacts.
+#
+# (It is only run when invoked by another workflow.)
+on:
+  workflow_call:
+    inputs:
+      for_release:
+        required: true
+        type: boolean
+env:
+  go_version: ${{ vars.ARCALOT_GO_VERSION }}
+jobs:
+  build:
+    name: build ${{ inputs.for_release && 'release' || 'snapshot' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go_version }}
+      - name: Build ${{ inputs.for_release && 'release' || 'snapshot' }}
+        uses: goreleaser/goreleaser-action@v5
+        env:
+          GITHUB_TOKEN: ${{ inputs.for_release && secrets.GITHUB_TOKEN || '' }}
+          GOPROXY: direct
+          GOSUMDB: off
+          ARGS: ${{ inputs.for_release && 'release --clean' || 'build --snapshot' }}
+        with:
+          distribution: goreleaser
+          version: latest
+          args: ${{ env.ARGS }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist
