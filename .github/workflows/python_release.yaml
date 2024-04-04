@@ -20,7 +20,7 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
         run: |
-          if [[ ${VERSION//[[:blank:]]/} =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+([-+][[:alnum:]]+)?$ ]]
+          if [[ ${VERSION//[[:blank:]]/} =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-[[:alnum:].-]+)?(\+[[:alnum:].-]+)?$ ]]
           then echo "[INF] version format accepted"
           else echo "[ERR] wrong version format: $VERSION" ; exit 1
           fi
