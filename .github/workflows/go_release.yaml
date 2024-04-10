@@ -12,8 +12,9 @@ on:
       for_release:
         required: true
         type: boolean
-env:
-  go_version: ${{ vars.ARCALOT_GO_VERSION }}
+      go_version:
+        required: true
+        type: string
 jobs:
   build:
     name: build ${{ inputs.for_release && 'release' || 'snapshot' }}
@@ -26,7 +27,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.go_version }}
+          go-version: ${{ inputs.go_version }}
       - name: Build ${{ inputs.for_release && 'release' || 'snapshot' }}
         uses: goreleaser/goreleaser-action@v5
         env:

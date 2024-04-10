@@ -4,11 +4,13 @@
 # (It is only run when invoked by another workflow.)
 on:
   workflow_call:
+    inputs:
+      python_version:
+        required: true
+        type: string
     secrets:
       PYPI_TOKEN:
         required: true
-env:
-  python_version: ${{ vars.ARCALOT_PYTHON_VERSION }}
 jobs:
   build_python_wheel:
     name: build python wheel
@@ -34,7 +36,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.python_version }}
+          python-version: ${{ inputs.python_version }}
           architecture: 'x64'
       - name: Grab the License file
         run: |
