@@ -15,6 +15,13 @@ on:
       go_version:
         required: true
         type: string
+    secrets:
+      QUAY_USERNAME:
+        required: false
+      QUAY_PASSWORD:
+        required: false
+env:
+  do_login: ${{ secrets.QUAY_USERNAME != '' }}
 jobs:
   build:
     name: build ${{ inputs.for_release && 'release' || 'snapshot' }}
@@ -28,6 +35,13 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go_version }}
+      - name: Login to Quay.io
+        if: do_login && startsWith(github.event.ref, 'refs/tags/')
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
       - name: Build ${{ inputs.for_release && 'release' || 'snapshot' }}
         uses: goreleaser/goreleaser-action@v5
         env:
