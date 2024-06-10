@@ -26,4 +26,27 @@ jobs:
           key: go-test-${{ hashFiles('**/go.sum') }}
           restore-keys: go-generate-
       - name: Run go generate
-        run: ./.github/scripts/gogenerate.sh
+        env:
+          NOLINT: 1
+        run: |
+          go generate >/tmp/gogenerate.output 2>&1
+          fail=$?
+          if [[ $fail -ne 0 ]]
+          then msg="31m❌ Go generate failed"
+          else msg="32m✅ Go generate succeeded"
+          fi
+          echo -e "::group::\e[0;${msg}.\e[0m"
+          cat /tmp/gogenerate.output
+          echo "::endgroup::"
+          if [[ $fail -ne 0 ]]; then exit 1; fi
+          git diff --exit-code >/tmp/gogenerate.diff 2>&1
+          if [[ $? -ne 0 ]]; then
+            echo -e "::group::\e[0;31m❌ Git changes after go generate.\e[0m"
+            echo "The following is the diff of files:"
+            cat /tmp/gogenerate.diff
+            echo "::endgroup::"
+            echo -e "\e[0;31m⚙ Please run 'go generate' before pushing your changes.\e[0m"
+            exit 1
+          fi
+          echo -e "::group::\e[0;32m✅ No changes after go generate.\e[0m"
+          echo "::endgroup::"
