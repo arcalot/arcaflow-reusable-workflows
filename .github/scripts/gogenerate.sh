@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export NOLINT=1
-go generate >/tmp/gogenerate.output 2>/tmp/gogenerate.output
+go generate >/tmp/gogenerate.output 2>&1
 if [ $? -ne 0 ]; then
   echo -e "::group::\e[0;31m❌ Go generate failed.\e[0m"
   cat /tmp/gogenerate.output
