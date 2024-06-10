@@ -1,0 +1,29 @@
+# Reusable workflow for the repositories of the Arcalot organization.
+# This workflow runs a wrapper script for the Go `generate` command.
+# (It is only run when invoked by another workflow.)
+on:
+  workflow_call:
+    inputs:
+      go_version:
+        required: true
+        type: string
+jobs:
+  generate:
+    name: go generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go_version }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-test-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-generate-
+      - name: Run go generate
+        run: ./.github/scripts/gogenerate.sh
