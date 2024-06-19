@@ -33,6 +33,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go_version }}
+      - name: Install podman
+        run: sudo apt-get install -y podman
       - name: Set up gotestfmt
         uses: GoTestTools/gotestfmt-action@v2
       - uses: actions/cache@v4
@@ -42,8 +44,6 @@ jobs:
             ~/.cache/go-build
           key: go-test-${{ hashFiles('**/go.sum') }}
           restore-keys: go-test-
-      - name: Install podman
-        run: sudo apt-get install -y podman
       - name: Run go test
         run: |
           set -euo pipefail
