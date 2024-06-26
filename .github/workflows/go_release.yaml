@@ -15,13 +15,17 @@ on:
       go_version:
         required: true
         type: string
-    secrets:
-      QUAY_USERNAME:
+      registry:
         required: false
-      QUAY_PASSWORD:
+        type: string
+        default: quay.io
+    secrets:
+      REGISTRY_USERNAME:
+        required: false
+      REGISTRY_PASSWORD:
         required: false
 env:
-  do_login: ${{ secrets.QUAY_USERNAME != '' }}
+  do_login: ${{ secrets.REGISTRY_USERNAME != '' }}
 jobs:
   build:
     name: build ${{ inputs.for_release && 'release' || 'snapshot' }}
@@ -35,15 +39,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ inputs.go_version }}
-      - name: Login to Quay.io
+      - name: Login to the ${{ inputs.registry }} container registry
         if: env.do_login && startsWith(github.event.ref, 'refs/tags/')
         uses: docker/login-action@v3
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: ${{ inputs.registry }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Build ${{ inputs.for_release && 'release' || 'snapshot' }}
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         env:
           GITHUB_TOKEN: ${{ inputs.for_release && secrets.GITHUB_TOKEN || '' }}
           GOPROXY: direct
