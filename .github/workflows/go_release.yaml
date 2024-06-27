@@ -55,7 +55,7 @@ jobs:
           ARGS: ${{ inputs.for_release && 'release --clean' || 'build --snapshot' }}
         with:
           distribution: goreleaser
-          version: latest
+          version: '~> v2'
           args: ${{ env.ARGS }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
