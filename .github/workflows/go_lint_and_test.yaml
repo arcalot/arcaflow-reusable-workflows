@@ -42,20 +42,23 @@ jobs:
             ~/.cache/go-build
           key: go-test-${{ hashFiles('**/go.sum') }}
           restore-keys: go-test-
+      - name: Set up limgo
+        uses: GoTestTools/limgo-action@v1.0.2
+        with:
+          version: "v1.0.0"
+          install-only: true
+      - name: Setup mocks
+        run: |
+          go install go.uber.org/mock/mockgen@v0.4.0
+          go generate ./...
       - name: Run go test
         run: |
           set -euo pipefail
-          go generate
           go test -coverprofile /tmp/coverage.out -json -v ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
-          echo "# Code coverage summary" > /tmp/coverage.md
-          echo "|File|Type|Coverage|" >> /tmp/coverage.md
-          echo "|----|----|--------|" >> /tmp/coverage.md
-          go tool cover -func /tmp/coverage.out | sed -E -e 's/\s+/|/g' -e 's/^(.*)$/|\1|/' >> /tmp/coverage.md
+          cat .limgo.json
+          limgo -coverfile=/tmp/coverage.out -config=.limgo.json -outfmt=md -outfile=/tmp/coverage.md
           cat /tmp/coverage.md >> $GITHUB_STEP_SUMMARY
-          echo "::group::Code coverage summary"
-          go tool cover -func /tmp/coverage.out
-          echo "::endgroup::"
-      - name: Upload test log
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
