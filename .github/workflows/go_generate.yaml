@@ -29,14 +29,15 @@ jobs:
         env:
           NOLINT: 1
         run: |
+          set +e
           go generate ./... >/tmp/gogenerate.output 2>&1
           fail=$?
+          set -e
           if [[ $fail -ne 0 ]]
           then msg="31m❌ Go generate failed"
           else msg="32m✅ Go generate succeeded"
           fi
           echo -e "::group::\e[0;${msg}.\e[0m"
-          cat /tmp/gogenerate.output >> $GITHUB_STEP_SUMMARY
           cat /tmp/gogenerate.output
           echo "::endgroup::"
           if [[ $fail -ne 0 ]]; then exit 1; fi
