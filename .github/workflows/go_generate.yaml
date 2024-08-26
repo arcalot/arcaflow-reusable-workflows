@@ -29,7 +29,7 @@ jobs:
         env:
           NOLINT: 1
         run: |
-          go generate >/tmp/gogenerate.output 2>&1
+          go generate ./... >/tmp/gogenerate.output 2>&1
           fail=$?
           if [[ $fail -ne 0 ]]
           then msg="31m❌ Go generate failed"
