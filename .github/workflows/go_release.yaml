@@ -32,22 +32,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.go_version }}
       - name: Login to the ${{ inputs.registry }} container registry
         if: env.do_login && startsWith(github.event.ref, 'refs/tags/')
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ inputs.registry }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Build ${{ inputs.for_release && 'release' || 'snapshot' }}
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         env:
           GITHUB_TOKEN: ${{ inputs.for_release && secrets.GITHUB_TOKEN || '' }}
           GOPROXY: direct
@@ -58,7 +58,7 @@ jobs:
           version: '~> v2'
           args: ${{ env.ARGS }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries
           path: dist
